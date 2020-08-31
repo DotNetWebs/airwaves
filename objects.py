@@ -2,6 +2,8 @@ import math
 from geopy.distance import great_circle
 import helpers
 import settings
+import pretty_midi
+import sys
 
 
 class map:
@@ -100,6 +102,18 @@ class scale:
         return major_angles
 
 
+class aw_note:
+    def __init__(self):
+        self.note_number = 0
+        self.note_name = ""
+
+    def note2number(self, note_name):
+        note_number = pretty_midi.note_name_to_number(note_name)
+        return note_number
+
+    def get_hz(self):
+        return round(pretty_midi.note_number_to_hz(self.note_number),2)
+
 class infopanel:
     def __init__(self, pygame, font, panel_surface, screen):
         self.pygame = pygame
@@ -110,7 +124,6 @@ class infopanel:
         self.range = ""
         self.bearing = ""
         self.note = ""
-        self.hz = 0.0
         self.x = ""
         self.y = ""
 
@@ -135,12 +148,8 @@ class infopanel:
     def get_note(self):
         return self.note
 
-    def get_hz(self):
-        return round(self.hz, 2)
-
-    def set_note(self, note, hz):
+    def set_note(self, note):
         self.note = note
-        self.hz = hz
 
     def get_x(self):
         return self.x
@@ -155,23 +164,28 @@ class infopanel:
         self.y = y
 
     def update_display(self):
-        self.screen.blit(self.panel_surface, (1000, 0))
-        text_flight = self.font.render("Reg: " + infopanel.get_registration(self), True, settings.blue)
-        text_range = self.font.render("Range: " + infopanel.get_range(self), True, settings.blue)
-        text_bearing = self.font.render("Bearing: " + infopanel.get_bearing(self), True, settings.blue)
-        text_note = self.font.render("Note: " + infopanel.get_note(self), True,
-                                     settings.blue)
-        text_hz = self.font.render("Freq: " + str(infopanel.get_hz(self)) + " Hz",
-                                     True,
-                                     settings.blue)
-        text_x = self.font.render("X: " + infopanel.get_x(self), True, settings.blue)
-        text_y = self.font.render("Y: " + infopanel.get_y(self), True, settings.blue)
-        self.panel_surface.fill((255, 255, 255))
-        self.panel_surface.blit(text_flight, (10, 10))
-        self.panel_surface.blit(text_x, (10, 30))
-        self.panel_surface.blit(text_y, (10, 50))
-        self.panel_surface.blit(text_bearing, (10, 70))
-        self.panel_surface.blit(text_range, (10, 90))
-        self.panel_surface.blit(text_note, (10, 110))
-        self.panel_surface.blit(text_hz, (10, 130))
-        self.pygame.display.flip()
+        try:
+            self.screen.blit(self.panel_surface, (1000, 0))
+            text_flight = self.font.render("Reg: " + infopanel.get_registration(self), True, settings.blue)
+            text_range = self.font.render("Range: " + infopanel.get_range(self), True, settings.blue)
+            text_bearing = self.font.render("Bearing: " + infopanel.get_bearing(self), True, settings.blue)
+            text_note = self.font.render("Note: " + infopanel.get_note(self).note_name, True,
+                                         settings.blue)
+            text_hz = self.font.render("Freq: " + str(infopanel.get_note(self).get_hz()) + " Hz",
+                                       True,
+                                       settings.blue)
+            text_x = self.font.render("X: " + infopanel.get_x(self), True, settings.blue)
+            text_y = self.font.render("Y: " + infopanel.get_y(self), True, settings.blue)
+            self.panel_surface.fill((255, 255, 255))
+            self.panel_surface.blit(text_flight, (10, 10))
+            self.panel_surface.blit(text_x, (10, 30))
+            self.panel_surface.blit(text_y, (10, 50))
+            self.panel_surface.blit(text_bearing, (10, 70))
+            self.panel_surface.blit(text_range, (10, 90))
+            self.panel_surface.blit(text_note, (10, 110))
+            self.panel_surface.blit(text_hz, (10, 130))
+            self.pygame.display.flip()
+        except Exception as e:
+            line = sys.exc_info()[-1].tb_lineno
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            pass
