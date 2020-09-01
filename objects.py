@@ -1,10 +1,12 @@
 import math
 from geopy.distance import great_circle
+import objects
 import helpers
 import settings
 import pretty_midi
 import sys
-
+import pygame
+import midiout
 
 class map:
     def __init__(self, lat, long, offset, height, width):
@@ -41,6 +43,58 @@ class map:
         self.nm_scale_factor_y = height / ((self.left + self.right) / 2)
         self.home_x = helpers.plot_x(self.centre[1], self.left_x, self.x_width)
         self.home_y = helpers.plot_y(self.centre[0], self.top_y, self.y_height)
+
+class plotter:
+    def plot_aircraft(self, scale, aircraft, screen, font, font_large, panel, infopanel):
+        bearing_colour = settings.red
+        # check for note boundary
+        for count, angle in enumerate(scale.major_angles()):
+
+            try:
+                if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
+                    if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
+                        bearing_colour = settings.green
+                        aw_note = objects.aw_note()
+                        aw_note.note_name = scale.key[count] + '2'
+                        aw_note.note_number = aw_note.note2number(aw_note.note_name)
+                        infopanel.set_registration(aircraft.registration)
+                        infopanel.set_range(str(aircraft.range(settings.home_pos)))
+                        infopanel.set_bearing(str(aircraft.corrected_bearing()))
+                        infopanel.set_note(aw_note)
+                        infopanel.set_x(str(aircraft.plotted_x()))
+                        infopanel.set_y(str(aircraft.plotted_y()))
+                        midiout.send_note(aw_note, font, panel, aircraft)
+                        infopanel.update_display()
+                        break
+                else:
+                    bearing_colour = settings.red
+            except Exception as e:
+                line = sys.exc_info()[-1].tb_lineno
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                pass
+
+        plotted_xy = (aircraft.plotted_x(), aircraft.plotted_y())
+        pygame.draw.circle(screen, (settings.white), (plotted_xy), 10)
+        pygame.draw.circle(screen, (bearing_colour), (plotted_xy), 5)
+
+        text_flight = font.render(aircraft.registration, True, bearing_colour)
+        text_alt = font.render("Alt: " + str(aircraft.baro_alt), True, bearing_colour)
+        text_heading = font.render("HDG: " + str(aircraft.heading), True, bearing_colour)
+        text_ias = font.render("IAS: " + str(aircraft.IAS), True, bearing_colour)
+        text_bearing = font.render("Bearing: " + str(aircraft.corrected_bearing()), True, bearing_colour)
+        text_range = font.render("Range: " + str(aircraft.range(settings.home_pos)), True, bearing_colour)
+
+        text_x = font.render("X: " + str(aircraft.plotted_x()), True, bearing_colour)
+        text_y = font.render("Y: " + str(aircraft.plotted_y()), True, bearing_colour)
+
+        screen.blit(text_flight, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer))
+        screen.blit(text_alt, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 2))
+        screen.blit(text_heading, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 3))
+        screen.blit(text_ias, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 4))
+        screen.blit(text_bearing, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 5))
+        screen.blit(text_range, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 6))
+        screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 7))
+        screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
 
 
 class aircraft:
@@ -123,7 +177,7 @@ class infopanel:
         self.registration = ""
         self.range = ""
         self.bearing = ""
-        self.note = ""
+        self.note = aw_note()
         self.x = ""
         self.y = ""
 
@@ -165,7 +219,6 @@ class infopanel:
 
     def update_display(self):
         try:
-            self.screen.blit(self.panel_surface, (1000, 0))
             text_flight = self.font.render("Reg: " + infopanel.get_registration(self), True, settings.blue)
             text_range = self.font.render("Range: " + infopanel.get_range(self), True, settings.blue)
             text_bearing = self.font.render("Bearing: " + infopanel.get_bearing(self), True, settings.blue)
@@ -184,6 +237,17 @@ class infopanel:
             self.panel_surface.blit(text_range, (10, 90))
             self.panel_surface.blit(text_note, (10, 110))
             self.panel_surface.blit(text_hz, (10, 130))
+            self.screen.blit(self.panel_surface, (1000, 0))
+            self.pygame.display.flip()
+        except Exception as e:
+            line = sys.exc_info()[-1].tb_lineno
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            pass
+
+    def init_display(self):
+        try:
+            self.panel_surface.fill((255, 255, 255))
+            self.screen.blit(self.panel_surface, (1000, 0))
             self.pygame.display.flip()
         except Exception as e:
             line = sys.exc_info()[-1].tb_lineno

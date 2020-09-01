@@ -28,6 +28,8 @@ panel = width, height = (settings.panel_width, settings.height)
 panel_surface = pygame.Surface(panel)
 
 infopanel = objects.infopanel(pygame, font, panel_surface, screen)
+infopanel.init_display()
+plotter = objects.plotter()
 
 # main loop
 while running:
@@ -39,7 +41,6 @@ while running:
 
     # draw background
     radar_surface.blit(bg, settings.home_xy)
-
     pygame.draw.circle(radar_surface, (settings.green), (map.home_x, map.home_y), settings.home_radius)
 
     # draw scale
@@ -56,7 +57,7 @@ while running:
                                             adsb_aircraft['mag_heading'], adsb_aircraft['ias'], adsb_aircraft['lat'],
                                             adsb_aircraft['lon'], map)
                 aircraft.map = map
-                helpers.plot_aircraft(scale, aircraft, radar_surface, font, font_large, panel_surface, infopanel)
+                plotter.plot_aircraft(scale, aircraft, radar_surface, font, font_large, panel_surface, infopanel)
 
             except Exception as e:
                 line = sys.exc_info()[-1].tb_lineno
@@ -64,11 +65,11 @@ while running:
                 pass
 
     except Exception as e:
+        line = sys.exc_info()[-1].tb_lineno
+        exc_type, exc_obj, exc_tb = sys.exc_info()
         pass
 
     screen.blit(radar_surface, (0, 0))
-
-
     pygame.display.flip()
 
 pygame.quit()
