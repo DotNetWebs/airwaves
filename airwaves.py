@@ -29,7 +29,7 @@ panel_surface = pygame.Surface(panel)
 
 infopanel = objects.infopanel(pygame, font, panel_surface, screen)
 infopanel.init_display()
-plotter = objects.plotter()
+plotter = objects.plotter(infopanel)
 
 # main loop
 while running:
@@ -57,7 +57,7 @@ while running:
                                             adsb_aircraft['mag_heading'], adsb_aircraft['ias'], adsb_aircraft['lat'],
                                             adsb_aircraft['lon'], map)
                 aircraft.map = map
-                plotter.plot_aircraft(scale, aircraft, radar_surface, font, font_large, panel_surface, infopanel)
+                plotter.plot_aircraft(scale, aircraft, radar_surface, font, font_large, panel_surface)
 
             except Exception as e:
                 line = sys.exc_info()[-1].tb_lineno

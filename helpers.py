@@ -1,11 +1,6 @@
 import numpy as np
 import math
 import pygame
-import midiout
-import settings
-import objects
-import sys
-
 
 def plot_x(x, left, width):
     home_x = round(((x - left) / width) * 1000, 2)

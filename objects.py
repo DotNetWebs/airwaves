@@ -44,8 +44,13 @@ class map:
         self.home_x = helpers.plot_x(self.centre[1], self.left_x, self.x_width)
         self.home_y = helpers.plot_y(self.centre[0], self.top_y, self.y_height)
 
+
 class plotter:
-    def plot_aircraft(self, scale, aircraft, screen, font, font_large, panel, infopanel):
+    def __init__(self, infopanel):
+        self.infopanel =  infopanel
+        self.active_aircraft = None
+
+    def plot_aircraft(self, scale, aircraft, screen, font, font_large, panel):
         bearing_colour = settings.red
         # check for note boundary
         for count, angle in enumerate(scale.major_angles()):
@@ -57,14 +62,10 @@ class plotter:
                         aw_note = objects.aw_note()
                         aw_note.note_name = scale.key[count] + '2'
                         aw_note.note_number = aw_note.note2number(aw_note.note_name)
-                        infopanel.set_registration(aircraft.registration)
-                        infopanel.set_range(str(aircraft.range(settings.home_pos)))
-                        infopanel.set_bearing(str(aircraft.corrected_bearing()))
-                        infopanel.set_note(aw_note)
-                        infopanel.set_x(str(aircraft.plotted_x()))
-                        infopanel.set_y(str(aircraft.plotted_y()))
-                        midiout.send_note(aw_note, font, panel, aircraft)
-                        infopanel.update_display()
+                        self.update_panel(aircraft, aw_note)
+                        self.active_aircraft = aircraft
+                        midiout.send_note(aw_note)
+
                         break
                 else:
                     bearing_colour = settings.red
@@ -95,6 +96,18 @@ class plotter:
         screen.blit(text_range, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 6))
         screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 7))
         screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
+
+    def update_panel(self, aircraft, aw_note):
+        self.infopanel.set_registration(aircraft.registration)
+        self.infopanel.set_range(str(aircraft.range(settings.home_pos)))
+        self.infopanel.set_bearing(str(aircraft.corrected_bearing()))
+        self.infopanel.set_note(aw_note)
+        self.infopanel.set_x(str(aircraft.plotted_x()))
+        self.infopanel.set_y(str(aircraft.plotted_y()))
+        self.infopanel.update_display()
+
+    # def set_active_aircraft(self, aircraft):
+    #     self.active_aircraft = aircraft
 
 
 class aircraft:
@@ -167,6 +180,7 @@ class aw_note:
 
     def get_hz(self):
         return round(pretty_midi.note_number_to_hz(self.note_number),2)
+
 
 class infopanel:
     def __init__(self, pygame, font, panel_surface, screen):

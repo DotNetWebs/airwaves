@@ -4,7 +4,7 @@ import time
 
 old_note = 0
 
-def send_note(note, font, panel, aircraft):
+def send_note(note):
     global old_note
     msg = mido.Message('note_on', channel=4, note=note.note_number)
     msg2 = mido.Message('note_off',channel=4, note=note.note_number)
