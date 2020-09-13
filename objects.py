@@ -49,6 +49,7 @@ class plotter:
     def __init__(self, infopanel):
         self.infopanel =  infopanel
         self.active_aircraft = None
+        self.active_note = None
 
     def plot_aircraft(self, scale, aircraft, screen, font, font_large, panel):
         bearing_colour = settings.red
@@ -59,13 +60,9 @@ class plotter:
                 if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
                     if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
                         bearing_colour = settings.green
-                        aw_note = objects.aw_note()
-                        aw_note.note_name = scale.key[count] + '2'
-                        aw_note.note_number = aw_note.note2number(aw_note.note_name)
-                        self.update_panel(aircraft, aw_note)
+                        note = self.set_note(count, scale)
+                        self.update_panel(aw_note=note)
                         self.active_aircraft = aircraft
-                        midiout.send_note(aw_note)
-
                         break
                 else:
                     bearing_colour = settings.red
@@ -73,6 +70,11 @@ class plotter:
                 line = sys.exc_info()[-1].tb_lineno
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 pass
+
+        if self.active_aircraft:
+            if self.active_aircraft.registration == aircraft.registration:
+                self.active_aircraft = aircraft
+                bearing_colour=settings.green
 
         plotted_xy = (aircraft.plotted_x(), aircraft.plotted_y())
         pygame.draw.circle(screen, (settings.white), (plotted_xy), 10)
@@ -97,17 +99,30 @@ class plotter:
         screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 7))
         screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
 
-    def update_panel(self, aircraft, aw_note):
-        self.infopanel.set_registration(aircraft.registration)
-        self.infopanel.set_range(str(aircraft.range(settings.home_pos)))
-        self.infopanel.set_bearing(str(aircraft.corrected_bearing()))
-        self.infopanel.set_note(aw_note)
-        self.infopanel.set_x(str(aircraft.plotted_x()))
-        self.infopanel.set_y(str(aircraft.plotted_y()))
-        self.infopanel.update_display()
+    def set_note(self, count, scale):
+        note = objects.aw_note()
+        note.note_name = scale.key[count] + '2'
+        note.note_number = note.note2number(note.note_name)
+        self.active_note = note
+        midiout.send_note(note)
+        return note
 
-    # def set_active_aircraft(self, aircraft):
-    #     self.active_aircraft = aircraft
+    def update_panel(self, aircraft=None, aw_note=None):
+
+        if aircraft:
+            self.infopanel.set_baro_alt(aircraft.baro_alt)
+            self.infopanel.set_heading(aircraft.heading)
+            self.infopanel.set_IAS(aircraft.IAS)
+            self.infopanel.set_registration(aircraft.registration)
+            self.infopanel.set_range(str(aircraft.range(settings.home_pos)))
+            self.infopanel.set_bearing(str(aircraft.corrected_bearing()))
+            self.infopanel.set_x(str(aircraft.plotted_x()))
+            self.infopanel.set_y(str(aircraft.plotted_y()))
+
+        if aw_note:
+            self.infopanel.set_note(aw_note)
+
+        self.infopanel.update_display()
 
 
 class aircraft:
@@ -189,6 +204,9 @@ class infopanel:
         self.panel_surface = panel_surface
         self.screen = screen
         self.registration = ""
+        self.baro_alt = ""
+        self.heading = ""
+        self.IAS = ""
         self.range = ""
         self.bearing = ""
         self.note = aw_note()
@@ -200,6 +218,24 @@ class infopanel:
 
     def set_registration(self, reg):
         self.registration = reg
+
+    def get_baro_alt(self):
+        return self.baro_alt
+
+    def set_baro_alt(self, alt):
+        self.baro_alt = alt
+
+    def get_IAS(self):
+        return self.IAS
+
+    def set_IAS(self, ias):
+        self.IAS = ias
+
+    def get_heading(self):
+        return self.heading
+
+    def set_heading(self, hdg):
+        self.heading = hdg
 
     def get_range(self):
         return self.range
@@ -233,6 +269,9 @@ class infopanel:
 
     def update_display(self):
         try:
+            text_alt = self.font.render("Alt: " + str(infopanel.get_baro_alt(self)), True, settings.blue)
+            text_heading = self.font.render("HDG: " + str(infopanel.get_heading(self)), True, settings.blue)
+            text_ias = self.font.render("IAS: " + str(infopanel.get_IAS(self)), True, settings.blue)
             text_flight = self.font.render("Reg: " + infopanel.get_registration(self), True, settings.blue)
             text_range = self.font.render("Range: " + infopanel.get_range(self), True, settings.blue)
             text_bearing = self.font.render("Bearing: " + infopanel.get_bearing(self), True, settings.blue)
@@ -244,13 +283,18 @@ class infopanel:
             text_x = self.font.render("X: " + infopanel.get_x(self), True, settings.blue)
             text_y = self.font.render("Y: " + infopanel.get_y(self), True, settings.blue)
             self.panel_surface.fill((255, 255, 255))
-            self.panel_surface.blit(text_flight, (10, 10))
-            self.panel_surface.blit(text_x, (10, 30))
-            self.panel_surface.blit(text_y, (10, 50))
-            self.panel_surface.blit(text_bearing, (10, 70))
-            self.panel_surface.blit(text_range, (10, 90))
-            self.panel_surface.blit(text_note, (10, 110))
-            self.panel_surface.blit(text_hz, (10, 130))
+
+            self.panel_surface.blit(text_alt, (10, 10))
+            self.panel_surface.blit(text_heading, (10, 30))
+            self.panel_surface.blit(text_ias, (10, 50))
+
+            self.panel_surface.blit(text_flight, (10, 70))
+            self.panel_surface.blit(text_bearing, (10, 90))
+            self.panel_surface.blit(text_range, (10, 110))
+            self.panel_surface.blit(text_x, (10, 130))
+            self.panel_surface.blit(text_y, (10, 150))
+            self.panel_surface.blit(text_note, (10, 190))
+            self.panel_surface.blit(text_hz, (10, 210))
             self.screen.blit(self.panel_surface, (1000, 0))
             self.pygame.display.flip()
         except Exception as e:

@@ -6,11 +6,11 @@ old_note = 0
 
 def send_note(note):
     global old_note
-    msg = mido.Message('note_on', channel=4, note=note.note_number)
-    msg2 = mido.Message('note_off',channel=4, note=note.note_number)
 
     try:
         if note.note_number != old_note:
+            msg = mido.Message('note_on', channel=4, note=note.note_number)
+            msg2 = mido.Message('note_off', channel=4, note=note.note_number)
             port = mido.open_output('iRig MIDI 2 MIDI 1')
             port.send(msg)
             time.sleep(1)

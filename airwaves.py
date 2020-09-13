@@ -70,6 +70,11 @@ while running:
         pass
 
     screen.blit(radar_surface, (0, 0))
+
+    if plotter.active_aircraft:
+        plotter.update_panel(aircraft=plotter.active_aircraft)
+
+    infopanel.update_display()
     pygame.display.flip()
 
 pygame.quit()
