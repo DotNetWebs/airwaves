@@ -5,6 +5,7 @@ import pygame
 import connect
 import helpers
 import objects
+import plotter
 import settings
 
 # init pygame
@@ -29,7 +30,7 @@ panel_surface = pygame.Surface(panel)
 
 infopanel = objects.infopanel(pygame, font, panel_surface, screen)
 infopanel.init_display()
-plotter = objects.plotter(infopanel)
+plotter = plotter.plotter(infopanel)
 
 # main loop
 while running:
