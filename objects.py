@@ -269,26 +269,24 @@ class infopanel:
 
     def update_display(self):
         try:
-            text_alt = self.font.render("Alt: " + str(infopanel.get_baro_alt(self)), True, settings.blue)
-            text_heading = self.font.render("HDG: " + str(infopanel.get_heading(self)), True, settings.blue)
-            text_ias = self.font.render("IAS: " + str(infopanel.get_IAS(self)), True, settings.blue)
-            text_flight = self.font.render("Reg: " + infopanel.get_registration(self), True, settings.blue)
-            text_range = self.font.render("Range: " + infopanel.get_range(self), True, settings.blue)
-            text_bearing = self.font.render("Bearing: " + infopanel.get_bearing(self), True, settings.blue)
+            text_flight = self.font.render(infopanel.get_registration(self), True, settings.green)
+            text_alt = self.font.render("Alt: " + str(infopanel.get_baro_alt(self)), True, settings.green)
+            text_heading = self.font.render("HDG: " + str(infopanel.get_heading(self)), True, settings.green)
+            text_ias = self.font.render("IAS: " + str(infopanel.get_IAS(self)), True, settings.green)
+            text_range = self.font.render("Range: " + infopanel.get_range(self), True, settings.green)
+            text_bearing = self.font.render("Bearing: " + infopanel.get_bearing(self), True, settings.green)
             text_note = self.font.render("Note: " + infopanel.get_note(self).note_name, True,
-                                         settings.blue)
+                                         settings.green)
             text_hz = self.font.render("Freq: " + str(infopanel.get_note(self).get_hz()) + " Hz",
                                        True,
-                                       settings.blue)
-            text_x = self.font.render("X: " + infopanel.get_x(self), True, settings.blue)
-            text_y = self.font.render("Y: " + infopanel.get_y(self), True, settings.blue)
-            self.panel_surface.fill((255, 255, 255))
-
-            self.panel_surface.blit(text_alt, (10, 10))
-            self.panel_surface.blit(text_heading, (10, 30))
-            self.panel_surface.blit(text_ias, (10, 50))
-
-            self.panel_surface.blit(text_flight, (10, 70))
+                                       settings.green)
+            text_x = self.font.render("X: " + infopanel.get_x(self), True, settings.green)
+            text_y = self.font.render("Y: " + infopanel.get_y(self), True, settings.green)
+            self.panel_surface.fill((0, 0, 0))
+            self.panel_surface.blit(text_flight, (10, 10))
+            self.panel_surface.blit(text_alt, (10, 30))
+            self.panel_surface.blit(text_heading, (10, 50))
+            self.panel_surface.blit(text_ias, (10, 70))
             self.panel_surface.blit(text_bearing, (10, 90))
             self.panel_surface.blit(text_range, (10, 110))
             self.panel_surface.blit(text_x, (10, 130))
