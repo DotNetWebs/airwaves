@@ -1,4 +1,4 @@
-import midiout
+import midi
 import objects
 import settings
 import pygame
@@ -7,9 +7,10 @@ import sys
 
 class plotter:
     def __init__(self, infopanel):
-        self.infopanel =  infopanel
+        self.infopanel = infopanel
         self.active_aircraft = None
         self.active_note = None
+        self.midiout = midi.controller()
 
     def plot_aircraft(self, scale, aircraft, screen, font, font_large, panel):
         bearing_colour = settings.red
@@ -22,7 +23,7 @@ class plotter:
                     if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
                         bearing_colour = settings.green
                         note = self.set_note(count, scale)
-                        self.update_panel(aw_note=note)
+                        self.update_panel(aircraft=aircraft,aw_note=note)
                         self.active_aircraft = aircraft
                         break
                 else:
@@ -35,7 +36,7 @@ class plotter:
         if self.active_aircraft:
             if self.active_aircraft.registration == aircraft.registration:
                 self.active_aircraft = aircraft
-                bearing_colour=settings.green
+                bearing_colour = settings.green
 
         plotted_xy = (aircraft.plotted_x(), aircraft.plotted_y())
         pygame.draw.circle(screen, (settings.white), (plotted_xy), 10)
@@ -68,7 +69,7 @@ class plotter:
         note.note_name = scale.key[count] + '2'
         note.note_number = note.note2number(note.note_name)
         self.active_note = note
-        midiout.send_note(note)
+        self.midiout.send_note(note)
         return note
 
     def update_panel(self, aircraft=None, aw_note=None):

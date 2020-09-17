@@ -5,7 +5,7 @@ import settings
 import pretty_midi
 import sys
 import pygame
-import midiout
+import midi
 
 class map:
     def __init__(self, lat, long, offset, height, width):
