@@ -12,7 +12,7 @@ class plotter:
         self.active_note = None
         self.midiout = midi.controller()
 
-    def plot_aircraft(self, scale, aircraft, screen, font, font_large, panel):
+    def plot_aircraft(self, scale, aircraft, screen, font):
         bearing_colour = settings.red
 
         # check for note boundary

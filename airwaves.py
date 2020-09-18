@@ -2,6 +2,7 @@
 import mingus.core.keys as keys
 import sys
 import pygame
+import aircraft
 import connect
 import helpers
 import objects
@@ -22,10 +23,10 @@ bg = pygame.image.load(settings.bg_image)
 screen = pygame.display.set_mode([settings.width + settings.panel_width, settings.height])
 pygame.display.set_caption('Airwaves')
 
-radar = width, height = (settings.width, settings.height)
+radar = (width, height) = (settings.width, settings.height)
 radar_surface = pygame.Surface(radar)
 
-panel = width, height = (settings.panel_width, settings.height)
+panel = (width, height) = (settings.panel_width, settings.height)
 panel_surface = pygame.Surface(panel)
 
 infopanel = objects.infopanel(pygame, font, panel_surface, screen)
@@ -54,11 +55,10 @@ while running:
         for adsb_aircraft in connect.get_aircraft():
 
             try:
-                aircraft = objects.aircraft(adsb_aircraft['flight'], adsb_aircraft['alt_baro'],
-                                            adsb_aircraft['mag_heading'], adsb_aircraft['ias'], adsb_aircraft['lat'],
-                                            adsb_aircraft['lon'], map)
-                aircraft.map = map
-                plotter.plot_aircraft(scale, aircraft, radar_surface, font, font_large, panel_surface)
+                flight = aircraft.aircraft(adsb_aircraft['flight'], adsb_aircraft['alt_baro'],
+                                           adsb_aircraft['mag_heading'], adsb_aircraft['ias'], adsb_aircraft['lat'],
+                                           adsb_aircraft['lon'], map)
+                plotter.plot_aircraft(scale, flight, radar_surface, font)
 
             except Exception as e:
                 line = sys.exc_info()[-1].tb_lineno
