@@ -41,9 +41,6 @@ class map:
         self.home_x = helpers.plot_x(self.centre[1], self.left_x, self.x_width)
         self.home_y = helpers.plot_y(self.centre[0], self.top_y, self.y_height)
 
-
-
-
 class scale:
     def __init__(self, key):
         self.key = key

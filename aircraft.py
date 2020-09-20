@@ -9,6 +9,7 @@ class aircraft:
         self.IAS = IAS
         self.position = (lat, long)
         self.map = map
+        self.life = 0
 
     def position_string(self):
         return str(round(self.position[0], 3)) + "  " + str(round(self.position[1], 3))
@@ -42,3 +43,20 @@ class aircraft:
 
     def blit_XY(self):
         return ()
+
+    def update_life(self):
+        self.life += 1
+
+    def __eq__(self, other):
+        if not isinstance(other, aircraft):
+            # don't attempt to compare against unrelated types
+            return NotImplemented
+
+        return self.registration == other.registration
+
+    def __hash__(self):
+        # necessary for instances to behave sanely in dicts and sets.
+        return hash((self.registration))
+
+    def __repr__(self):
+        return self.registration

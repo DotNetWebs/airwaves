@@ -50,6 +50,8 @@ while running:
     scale = objects.scale(key)
     helpers.draw_scale(scale, key, radar_surface, map, settings.green, font_large)
 
+    live_aircraft = []
+
     try:
         # draw aircraft
         for adsb_aircraft in connect.get_aircraft():
@@ -60,10 +62,14 @@ while running:
                                            adsb_aircraft['lon'], map)
                 plotter.plot_aircraft(scale, flight, radar_surface, font)
 
+                live_aircraft.append(flight)
+
             except Exception as e:
                 line = sys.exc_info()[-1].tb_lineno
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 pass
+
+        plotter.set_live_aircraft(live_aircraft)
 
     except Exception as e:
         line = sys.exc_info()[-1].tb_lineno

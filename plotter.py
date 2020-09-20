@@ -4,10 +4,10 @@ import settings
 import pygame
 import sys
 
-
 class plotter:
     def __init__(self, infopanel):
         self.infopanel = infopanel
+        self.live_aircraft = []
         self.active_aircraft = None
         self.active_note = None
         self.midiout = midi.controller()
@@ -63,6 +63,28 @@ class plotter:
         if settings.debug_mode:
             screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 7))
             screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
+
+    def set_live_aircraft(self, live_aircraft):
+        prev_aircraft = set(self.live_aircraft)
+        current_aircraft = set(live_aircraft)
+        new_aircraft = current_aircraft - prev_aircraft
+        old_aircraft = prev_aircraft - current_aircraft
+
+        # remove old aircraft
+        for aircraft in old_aircraft:
+
+            for i, o in enumerate(self.live_aircraft):
+                if o.registration == aircraft.registration:
+                    del self.live_aircraft[i]
+                    break
+
+        # add new aircraft
+        for aircraft in new_aircraft:
+            self.live_aircraft.append(aircraft)
+
+        # update aircraft life
+        for aircraft in self.live_aircraft:
+            aircraft.update_life()
 
     def set_note(self, count, scale):
         note = objects.aw_note()
