@@ -6,6 +6,7 @@ import aircraft
 import connect
 import helpers
 import objects
+import panel
 import plotter
 import settings
 
@@ -26,10 +27,10 @@ pygame.display.set_caption('Airwaves')
 radar = (width, height) = (settings.width, settings.height)
 radar_surface = pygame.Surface(radar)
 
-panel = (width, height) = (settings.panel_width, settings.height)
-panel_surface = pygame.Surface(panel)
+dimensions = (width, height) = (settings.panel_width, settings.height)
+panel_surface = pygame.Surface(dimensions)
 
-infopanel = objects.infopanel(pygame, font, panel_surface, screen)
+infopanel = panel.infopanel(pygame, font, panel_surface, screen)
 infopanel.init_display()
 plotter = plotter.plotter(infopanel)
 
@@ -60,7 +61,6 @@ while running:
                 flight = aircraft.aircraft(adsb_aircraft['flight'], adsb_aircraft['alt_baro'],
                                            adsb_aircraft['mag_heading'], adsb_aircraft['ias'], adsb_aircraft['lat'],
                                            adsb_aircraft['lon'], map)
-                plotter.plot_aircraft(scale, flight, radar_surface, font)
 
                 live_aircraft.append(flight)
 
@@ -70,6 +70,9 @@ while running:
                 pass
 
         plotter.set_live_aircraft(live_aircraft)
+
+        for flight in plotter.live_aircraft:
+            plotter.plot_aircraft(scale, flight, radar_surface, font)
 
     except Exception as e:
         line = sys.exc_info()[-1].tb_lineno

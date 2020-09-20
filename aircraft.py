@@ -1,5 +1,6 @@
 from geopy.distance import great_circle
 import helpers
+import settings
 
 class aircraft:
     def __init__(self, flight, baro_alt, heading, IAS, lat, long, map):
@@ -10,6 +11,9 @@ class aircraft:
         self.position = (lat, long)
         self.map = map
         self.life = 0
+        self.bearing = 0
+        self.last_bearing = None
+        self.bearing_diff = 0
 
     def position_string(self):
         return str(round(self.position[0], 3)) + "  " + str(round(self.position[1], 3))
@@ -34,12 +38,27 @@ class aircraft:
 
     def corrected_bearing(self):
         if self.plotted_x() > 500:
-            return int(self.cartesian()[1]) + 90
-        else:
-            return int(self.cartesian()[1]) + 90 + 180
 
-    def range(self, home):
-        return round(great_circle(home, self.position).nautical, 2)
+            bearing = int(self.cartesian()[1]) + 90
+            self.bearing = bearing
+
+            if self.last_bearing:
+                self.bearing_diff = bearing - self.last_bearing
+
+            self.last_bearing = bearing
+            return bearing
+        else:
+            bearing = int(self.cartesian()[1]) + 90 + 180
+            self.bearing = bearing
+
+            if self.last_bearing:
+                self.bearing_diff = bearing - self.last_bearing
+
+            self.last_bearing = bearing
+            return bearing
+
+    def range(self):
+        return round(great_circle(settings.home_pos, self.position).nautical, 2)
 
     def blit_XY(self):
         return ()
@@ -55,7 +74,7 @@ class aircraft:
         return self.registration == other.registration
 
     def __hash__(self):
-        # necessary for instances to behave sanely in dicts and sets.
+        # required to enable hashing for dictionaries and sets.
         return hash((self.registration))
 
     def __repr__(self):

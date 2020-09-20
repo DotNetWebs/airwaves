@@ -47,7 +47,7 @@ class plotter:
         text_heading = font.render("HDG: " + str(aircraft.heading), True, bearing_colour)
         text_ias = font.render("IAS: " + str(aircraft.IAS), True, bearing_colour)
         text_bearing = font.render("Bearing: " + str(aircraft.corrected_bearing()), True, bearing_colour)
-        text_range = font.render("Range: " + str(aircraft.range(settings.home_pos)), True, bearing_colour)
+        text_range = font.render("Range: " + str(aircraft.range()), True, bearing_colour)
 
         if settings.debug_mode:
             text_x = font.render("X: " + str(aircraft.plotted_x()), True, bearing_colour)
@@ -67,6 +67,7 @@ class plotter:
     def set_live_aircraft(self, live_aircraft):
         prev_aircraft = set(self.live_aircraft)
         current_aircraft = set(live_aircraft)
+        retained_aircraft =  prev_aircraft & current_aircraft
         new_aircraft = current_aircraft - prev_aircraft
         old_aircraft = prev_aircraft - current_aircraft
 
@@ -82,9 +83,21 @@ class plotter:
         for aircraft in new_aircraft:
             self.live_aircraft.append(aircraft)
 
+        # update retained aircraft
+        for aircraft in retained_aircraft:
+
+            for i, o in enumerate(self.live_aircraft):
+                if o.registration == aircraft.registration:
+                    o.baro_alt = aircraft.baro_alt
+                    o.heading = aircraft.heading
+                    o.IAS = aircraft.IAS
+                    o.position = aircraft.position
+
         # update aircraft life
         for aircraft in self.live_aircraft:
             aircraft.update_life()
+
+        pass
 
     def set_note(self, count, scale):
         note = objects.aw_note()
@@ -97,12 +110,7 @@ class plotter:
     def update_panel(self, aircraft=None, aw_note=None):
 
         if aircraft:
-            self.infopanel.set_baro_alt(aircraft.baro_alt)
-            self.infopanel.set_heading(aircraft.heading)
-            self.infopanel.set_IAS(aircraft.IAS)
-            self.infopanel.set_registration(aircraft.registration)
-            self.infopanel.set_range(str(aircraft.range(settings.home_pos)))
-            self.infopanel.set_bearing(str(aircraft.corrected_bearing()))
+            self.infopanel.set_aircraft(aircraft)
             self.infopanel.set_x(str(aircraft.plotted_x()))
             self.infopanel.set_y(str(aircraft.plotted_y()))
 

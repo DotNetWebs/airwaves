@@ -14,4 +14,4 @@ large_font = ("Arial", 36)
 bg_image = "background.png"
 initial_key = "F"
 panel_width = 400
-debug_mode = False
+debug_mode = True
