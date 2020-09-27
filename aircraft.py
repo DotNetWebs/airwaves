@@ -12,7 +12,7 @@ class aircraft:
         self.map = map
         self.life = 0
         self.bearing = 0
-        self.last_bearing = None
+        self.last_bearing = 0
         self.bearing_diff = 0
 
     def position_string(self):
@@ -38,24 +38,25 @@ class aircraft:
 
     def corrected_bearing(self):
         if self.plotted_x() > 500:
-
             bearing = int(self.cartesian()[1]) + 90
-            self.bearing = bearing
-
-            if self.last_bearing:
-                self.bearing_diff = bearing - self.last_bearing
-
-            self.last_bearing = bearing
-            return bearing
+            return self.set_bearings(bearing)
         else:
             bearing = int(self.cartesian()[1]) + 90 + 180
-            self.bearing = bearing
+            return self.set_bearings(bearing)
 
-            if self.last_bearing:
-                self.bearing_diff = bearing - self.last_bearing
+    def set_bearings(self, bearing):
+        self.bearing = bearing
+        self.set_bearing_diff(bearing)
+        self.last_bearing = bearing
+        return bearing
 
-            self.last_bearing = bearing
-            return bearing
+    def set_bearing_diff(self, bearing):
+        if self.last_bearing:
+            bd = bearing - self.last_bearing
+            # only set bearing_diff after stable course determined
+            if - 5 <= bd <= + 5:
+                if bd != 0:
+                    self.bearing_diff = bd
 
     def range(self):
         return round(great_circle(settings.home_pos, self.position).nautical, 2)

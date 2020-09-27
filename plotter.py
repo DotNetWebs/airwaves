@@ -12,6 +12,7 @@ class plotter:
         self.active_note = None
         self.midiout = midi.controller()
 
+    # draw aircraft
     def plot_aircraft(self, scale, aircraft, screen, font):
         bearing_colour = settings.red
 
@@ -52,6 +53,8 @@ class plotter:
         if settings.debug_mode:
             text_x = font.render("X: " + str(aircraft.plotted_x()), True, bearing_colour)
             text_y = font.render("Y: " + str(aircraft.plotted_y()), True, bearing_colour)
+            text_life = font.render("Life: " + str(aircraft.life), True, bearing_colour)
+            text_bearing_diff = font.render("B Diff: " + str(aircraft.bearing_diff), True, bearing_colour)
 
         screen.blit(text_flight, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer))
         screen.blit(text_alt, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 2))
@@ -61,9 +64,12 @@ class plotter:
         screen.blit(text_range, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 6))
 
         if settings.debug_mode:
-            screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 7))
-            screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
+            screen.blit(text_life, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
+            screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 9))
+            screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 10))
+            screen.blit(text_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 11))
 
+    # store aircraft
     def set_live_aircraft(self, live_aircraft):
         prev_aircraft = set(self.live_aircraft)
         current_aircraft = set(live_aircraft)
@@ -96,8 +102,6 @@ class plotter:
         # update aircraft life
         for aircraft in self.live_aircraft:
             aircraft.update_life()
-
-        pass
 
     def set_note(self, count, scale):
         note = objects.aw_note()
