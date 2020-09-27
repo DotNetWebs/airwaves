@@ -43,7 +43,7 @@ def cart2pol2(x, y):
     return (radius, theta)
 
 
-def draw_scale(scale, key, screen, map, color, font):
+def draw_scale(scale, screen, map, color, font):
     for count, angle in enumerate(scale.major_angles()):
         radar = (map.home_x, map.home_y)
         radar_len = 750
@@ -53,7 +53,7 @@ def draw_scale(scale, key, screen, map, color, font):
         note_x = radar[0] + math.cos(math.radians(angle - 90 + note_angle)) * note_len
         y = radar[1] + math.sin(math.radians(angle - 90)) * radar_len
         note_y = radar[1] + math.sin(math.radians(angle - 90 + note_angle)) * note_len
-        note = key[count]
+        note = scale.key[count]
         text_note = font.render(note + " " + str(int(angle)), True, color, 22)
         text_note_plot = (note_x, note_y)
         screen.blit(text_note, text_note_plot)

@@ -4,6 +4,7 @@ import settings
 import pygame
 import sys
 
+
 class plotter:
     def __init__(self, infopanel):
         self.infopanel = infopanel
@@ -20,15 +21,20 @@ class plotter:
         for count, angle in enumerate(scale.major_angles()):
 
             try:
-                if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
-                    if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
-                        bearing_colour = settings.green
-                        note = self.set_note(count, scale)
-                        self.update_panel(aircraft=aircraft,aw_note=note)
-                        self.active_aircraft = aircraft
-                        break
+                if aircraft.inital_bearing_diff != 0:
+                    if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
+                        if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
+                            bearing_colour = settings.green
+                            note = self.set_note(count, scale, aircraft)
+                            self.update_panel(aircraft=aircraft, aw_note=note)
+                            self.active_aircraft = aircraft
+                            break
                 else:
-                    bearing_colour = settings.red
+                    if aircraft.inital_bearing_diff == 0:
+                        bearing_colour = settings.gray
+                    else:
+                        bearing_colour = settings.red
+
             except Exception as e:
                 line = sys.exc_info()[-1].tb_lineno
                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -54,6 +60,8 @@ class plotter:
             text_x = font.render("X: " + str(aircraft.plotted_x()), True, bearing_colour)
             text_y = font.render("Y: " + str(aircraft.plotted_y()), True, bearing_colour)
             text_life = font.render("Life: " + str(aircraft.life), True, bearing_colour)
+            text_init_bearing_diff = font.render("Init B Diff: " + str(aircraft.inital_bearing_diff), True,
+                                                 bearing_colour)
             text_bearing_diff = font.render("B Diff: " + str(aircraft.bearing_diff), True, bearing_colour)
 
         screen.blit(text_flight, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer))
@@ -67,13 +75,14 @@ class plotter:
             screen.blit(text_life, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
             screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 9))
             screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 10))
-            screen.blit(text_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 11))
+            screen.blit(text_init_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 11))
+            screen.blit(text_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 12))
 
     # store aircraft
     def set_live_aircraft(self, live_aircraft):
         prev_aircraft = set(self.live_aircraft)
         current_aircraft = set(live_aircraft)
-        retained_aircraft =  prev_aircraft & current_aircraft
+        retained_aircraft = prev_aircraft & current_aircraft
         new_aircraft = current_aircraft - prev_aircraft
         old_aircraft = prev_aircraft - current_aircraft
 
@@ -103,9 +112,12 @@ class plotter:
         for aircraft in self.live_aircraft:
             aircraft.update_life()
 
-    def set_note(self, count, scale):
+    def set_note(self, count, scale, aircraft):
         note = objects.aw_note()
-        note.note_name = scale.key[count] + '2'
+        if aircraft.bearing_diff > 0:
+            note.note_name = scale.key[count] + '2'
+        else:
+            note.note_name = scale.key[count-1] + '2'
         note.note_number = note.note2number(note.note_name)
         self.active_note = note
         self.midiout.send_note(note)

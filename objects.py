@@ -54,6 +54,9 @@ class scale:
 
         return major_angles
 
+    def __repr__(self):
+        return f'Scale: {self.key} Notes: {self.numberofnotes}'
+
 
 class aw_note:
     def __init__(self):

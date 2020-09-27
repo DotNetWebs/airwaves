@@ -49,7 +49,7 @@ while running:
     # draw scale
     key = keys.get_notes(key=settings.initial_key)
     scale = objects.scale(key)
-    helpers.draw_scale(scale, key, radar_surface, map, settings.green, font_large)
+    helpers.draw_scale(scale, radar_surface, map, settings.green, font_large)
 
     live_aircraft = []
 

@@ -14,6 +14,7 @@ class aircraft:
         self.bearing = 0
         self.last_bearing = 0
         self.bearing_diff = 0
+        self.inital_bearing_diff = 0
 
     def position_string(self):
         return str(round(self.position[0], 3)) + "  " + str(round(self.position[1], 3))
@@ -57,6 +58,9 @@ class aircraft:
             if - 5 <= bd <= + 5:
                 if bd != 0:
                     self.bearing_diff = bd
+                    if self.inital_bearing_diff == 0:
+                        self.inital_bearing_diff = bd
+
 
     def range(self):
         return round(great_circle(settings.home_pos, self.position).nautical, 2)
