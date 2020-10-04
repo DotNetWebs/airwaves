@@ -2,9 +2,7 @@
 import mingus.core.keys as keys
 import sys
 import pygame
-import aircraft
-import connect
-import helpers
+
 import objects
 import panel
 import plotter
@@ -25,6 +23,7 @@ screen = pygame.display.set_mode([settings.width + settings.panel_width, setting
 pygame.display.set_caption('Airwaves')
 
 radar = (width, height) = (settings.width, settings.height)
+radar_rect = pygame.Rect((0,0) + radar)
 radar_surface = pygame.Surface(radar)
 
 dimensions = (width, height) = (settings.panel_width, settings.height)
@@ -32,7 +31,9 @@ panel_surface = pygame.Surface(dimensions)
 
 infopanel = panel.infopanel(pygame, font, panel_surface, screen)
 infopanel.init_display()
-plotter = plotter.plotter(infopanel)
+key = keys.get_notes(key=settings.initial_key)
+scale = objects.scale(key)
+plotter = plotter.plotter(screen, radar_surface, map, scale, infopanel, font, font_large)
 
 # main loop
 while running:
@@ -47,44 +48,19 @@ while running:
     pygame.draw.circle(radar_surface, (settings.green), (map.home_x, map.home_y), settings.home_radius)
 
     # draw scale
-    key = keys.get_notes(key=settings.initial_key)
-    scale = objects.scale(key)
-    helpers.draw_scale(scale, radar_surface, map, settings.green, font_large)
-
-    live_aircraft = []
-
-    try:
-        # draw aircraft
-        for adsb_aircraft in connect.get_aircraft():
-
-            try:
-                flight = aircraft.aircraft(adsb_aircraft['flight'], adsb_aircraft['alt_baro'],
-                                           adsb_aircraft['mag_heading'], adsb_aircraft['ias'], adsb_aircraft['lat'],
-                                           adsb_aircraft['lon'], map)
-
-                live_aircraft.append(flight)
-
-            except Exception as e:
-                line = sys.exc_info()[-1].tb_lineno
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                pass
-
-        plotter.set_live_aircraft(live_aircraft)
-
-        for flight in plotter.live_aircraft:
-            plotter.plot_aircraft(scale, flight, radar_surface, font)
-
-    except Exception as e:
-        line = sys.exc_info()[-1].tb_lineno
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        pass
-
+    plotter.draw_scale(radar_surface)
     screen.blit(radar_surface, (0, 0))
+
+    plotter.draw_aircraft()
 
     if plotter.active_aircraft:
         plotter.update_panel(aircraft=plotter.active_aircraft)
 
+    # refresh radar
+    pygame.display.update(radar_rect)
+
+    # refresh info panel display
     infopanel.update_display()
-    pygame.display.flip()
+
 
 pygame.quit()

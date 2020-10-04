@@ -57,6 +57,11 @@ class scale:
     def __repr__(self):
         return f'Scale: {self.key} Notes: {self.numberofnotes}'
 
+class aw_sector:
+    def __init__(self):
+        self.colour = None
+        self.note = None
+        self.aircraft = None
 
 class aw_note:
     def __init__(self):

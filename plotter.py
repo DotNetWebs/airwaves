@@ -1,84 +1,73 @@
+import aircraft
+import connect
 import midi
 import objects
 import settings
+import math
 import pygame
 import sys
 
 
 class plotter:
-    def __init__(self, infopanel):
+    def __init__(self, screen, radar_surface, map, scale, infopanel, font, font_large):
+        self.screen = screen
+        self.radar_surface = radar_surface
+        self.map = map
+        self.scale = scale
         self.infopanel = infopanel
         self.live_aircraft = []
         self.active_aircraft = None
         self.active_note = None
         self.midiout = midi.controller()
+        self.font = font
+        self.font_large = font_large
 
-    # draw aircraft
-    def plot_aircraft(self, scale, aircraft, screen, font):
-        bearing_colour = settings.red
+    def draw_scale(self, screen):
+        for count, angle in enumerate(self.scale.major_angles()):
+            radar = (self.map.home_x, self.map.home_y)
+            radar_len = 750
+            note_len = 300
+            note_angle = (360 / len(self.scale.major_angles())) / 2
+            x = radar[0] + math.cos(math.radians(angle - 90)) * radar_len
+            note_x = radar[0] + math.cos(math.radians(angle - 90 + note_angle)) * note_len
+            y = radar[1] + math.sin(math.radians(angle - 90)) * radar_len
+            note_y = radar[1] + math.sin(math.radians(angle - 90 + note_angle)) * note_len
+            note = self.scale.key[count]
+            text_note = self.font_large.render(note + " " + str(int(angle)), True, settings.green, 22)
+            text_note_plot = (note_x, note_y)
+            screen.blit(text_note, text_note_plot)
+            pygame.draw.line(screen, settings.green, radar, (x, y), 2)
 
-        # check for note boundary
-        for count, angle in enumerate(scale.major_angles()):
+    def draw_aircraft(self):
+        live_aircraft = []
+        try:
+            # draw aircraft
+            for adsb_aircraft in connect.get_aircraft():
 
-            try:
-                if aircraft.inital_bearing_diff != 0:
-                    if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
-                        if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
-                            bearing_colour = settings.green
-                            note = self.set_note(count, scale, aircraft)
-                            self.update_panel(aircraft=aircraft, aw_note=note)
-                            self.active_aircraft = aircraft
-                            break
-                else:
-                    if aircraft.inital_bearing_diff == 0:
-                        bearing_colour = settings.gray
-                    else:
-                        bearing_colour = settings.red
+                try:
+                    flight = aircraft.aircraft(adsb_aircraft['flight'], adsb_aircraft['alt_baro'],
+                                               adsb_aircraft['mag_heading'], adsb_aircraft['ias'], adsb_aircraft['lat'],
+                                               adsb_aircraft['lon'], self.map)
 
-            except Exception as e:
-                line = sys.exc_info()[-1].tb_lineno
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                pass
+                    live_aircraft.append(flight)
 
-        if self.active_aircraft:
-            if self.active_aircraft.registration == aircraft.registration:
-                self.active_aircraft = aircraft
-                bearing_colour = settings.green
+                except Exception as e:
+                    line = sys.exc_info()[-1].tb_lineno
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    pass
 
-        plotted_xy = (aircraft.plotted_x(), aircraft.plotted_y())
-        pygame.draw.circle(screen, (settings.white), (plotted_xy), 10)
-        pygame.draw.circle(screen, (bearing_colour), (plotted_xy), 5)
+        except Exception as e:
+            line = sys.exc_info()[-1].tb_lineno
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            pass
 
-        text_flight = font.render(aircraft.registration, True, bearing_colour)
-        text_alt = font.render("Alt: " + str(aircraft.baro_alt), True, bearing_colour)
-        text_heading = font.render("HDG: " + str(aircraft.heading), True, bearing_colour)
-        text_ias = font.render("IAS: " + str(aircraft.IAS), True, bearing_colour)
-        text_bearing = font.render("Bearing: " + str(aircraft.corrected_bearing()), True, bearing_colour)
-        text_range = font.render("Range: " + str(aircraft.range()), True, bearing_colour)
+        plotter.set_live_aircraft(self, live_aircraft)
 
-        if settings.debug_mode:
-            text_x = font.render("X: " + str(aircraft.plotted_x()), True, bearing_colour)
-            text_y = font.render("Y: " + str(aircraft.plotted_y()), True, bearing_colour)
-            text_life = font.render("Life: " + str(aircraft.life), True, bearing_colour)
-            text_init_bearing_diff = font.render("Init B Diff: " + str(aircraft.inital_bearing_diff), True,
-                                                 bearing_colour)
-            text_bearing_diff = font.render("B Diff: " + str(aircraft.bearing_diff), True, bearing_colour)
+        for flight in self.live_aircraft:
+            plotter.plot_aircraft(self, flight)
 
-        screen.blit(text_flight, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer))
-        screen.blit(text_alt, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 2))
-        screen.blit(text_heading, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 3))
-        screen.blit(text_ias, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 4))
-        screen.blit(text_bearing, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 5))
-        screen.blit(text_range, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 6))
+        # store aircraft
 
-        if settings.debug_mode:
-            screen.blit(text_life, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
-            screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 9))
-            screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 10))
-            screen.blit(text_init_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 11))
-            screen.blit(text_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 12))
-
-    # store aircraft
     def set_live_aircraft(self, live_aircraft):
         prev_aircraft = set(self.live_aircraft)
         current_aircraft = set(live_aircraft)
@@ -112,12 +101,84 @@ class plotter:
         for aircraft in self.live_aircraft:
             aircraft.update_life()
 
+    # draw aircraft
+    def plot_aircraft(self, aircraft):
+        sector = self.check_boundaries(aircraft, self.scale)
+        colour = sector.colour
+
+        if self.active_aircraft:
+            if self.active_aircraft.registration == aircraft.registration:
+                self.active_aircraft = aircraft
+                colour = settings.green
+
+        plotted_xy = (aircraft.plotted_x(), aircraft.plotted_y())
+        pygame.draw.circle(self.screen, (settings.white), (plotted_xy), 10)
+        pygame.draw.circle(self.screen, (colour), (plotted_xy), 5)
+
+        text_flight = self.font.render(aircraft.registration, True, colour)
+        text_alt = self.font.render("Alt: " + str(aircraft.baro_alt), True, colour)
+        text_heading = self.font.render("HDG: " + str(aircraft.heading), True, colour)
+        text_ias = self.font.render("IAS: " + str(aircraft.IAS), True, colour)
+        text_bearing = self.font.render("Bearing: " + str(aircraft.corrected_bearing()), True, colour)
+        text_range = self.font.render("Range: " + str(aircraft.range()), True, colour)
+
+        if settings.debug_mode:
+            text_x = self.font.render("X: " + str(aircraft.plotted_x()), True, colour)
+            text_y = self.font.render("Y: " + str(aircraft.plotted_y()), True, colour)
+            text_life = self.font.render("Life: " + str(aircraft.life), True, colour)
+            text_init_bearing_diff = self.font.render("Init B Diff: " + str(aircraft.inital_bearing_diff), True,
+                                                      colour)
+            text_bearing_diff = self.font.render("B Diff: " + str(aircraft.bearing_diff), True, colour)
+
+        self.screen.blit(text_flight, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer))
+        self.screen.blit(text_alt, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 2))
+        self.screen.blit(text_heading, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 3))
+        self.screen.blit(text_ias, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 4))
+        self.screen.blit(text_bearing, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 5))
+        self.screen.blit(text_range, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 6))
+
+        if settings.debug_mode:
+            self.screen.blit(text_life, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 8))
+            self.screen.blit(text_x, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 9))
+            self.screen.blit(text_y, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 10))
+            self.screen.blit(text_init_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 11))
+            self.screen.blit(text_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 12))
+
+    def check_boundaries(self, aircraft, scale):
+
+        sector = objects.aw_sector()
+        sector.colour = settings.red
+
+        # check for note boundary
+        for count, angle in enumerate(scale.major_angles()):
+
+            try:
+                if aircraft.inital_bearing_diff != 0:
+                    if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
+                        if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
+                            sector.color = settings.green
+                            note = self.set_note(count, scale, aircraft)
+                            self.update_panel(aircraft=aircraft, aw_note=note)
+                            self.active_aircraft = aircraft
+                            break
+                else:
+                    if aircraft.inital_bearing_diff == 0:
+                        sector.color = settings.gray
+                    else:
+                        sector.color = settings.red
+
+            except Exception as e:
+                line = sys.exc_info()[-1].tb_lineno
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                pass
+        return sector
+
     def set_note(self, count, scale, aircraft):
         note = objects.aw_note()
         if aircraft.bearing_diff > 0:
             note.note_name = scale.key[count] + '2'
         else:
-            note.note_name = scale.key[count-1] + '2'
+            note.note_name = scale.key[count - 1] + '2'
         note.note_number = note.note2number(note.note_name)
         self.active_note = note
         self.midiout.send_note(note)

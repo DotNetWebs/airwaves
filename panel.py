@@ -1,7 +1,7 @@
 import settings
 import objects
 import sys
-
+import pygame
 
 class infopanel:
     def __init__(self, pygame, font, panel_surface, screen):
@@ -13,6 +13,7 @@ class infopanel:
         self.note = objects.aw_note()
         self.x = ""
         self.y = ""
+        self.rect = pygame.Rect(settings.width, 0, settings.panel_width, settings.height)
 
     def set_aircraft(self, aircraft):
          self.aircraft = aircraft
@@ -82,14 +83,12 @@ class infopanel:
                     self.panel_surface.blit(text_bearing_diff, (10, settings.text_spacer * 15))
 
                 self.screen.blit(self.panel_surface, (1000, 0))
-                self.pygame.display.flip()
-
-
+                self.pygame.display.update(self.rect)
 
             else:
                 self.panel_surface.fill((0, 0, 0))
                 self.screen.blit(self.panel_surface, (1000, 0))
-                self.pygame.display.flip()
+                self.pygame.display.update(self.rect)
 
 
         except Exception as e:
@@ -101,8 +100,10 @@ class infopanel:
         try:
             self.panel_surface.fill((255, 255, 255))
             self.screen.blit(self.panel_surface, (1000, 0))
-            self.pygame.display.flip()
+            self.pygame.display.update(self.rect)
         except Exception as e:
             line = sys.exc_info()[-1].tb_lineno
             exc_type, exc_obj, exc_tb = sys.exc_info()
             pass
+
+
