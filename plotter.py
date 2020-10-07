@@ -16,8 +16,7 @@ class plotter:
         self.scale = scale
         self.infopanel = infopanel
         self.live_aircraft = []
-        self.active_aircraft = None
-        self.active_note = None
+        self.active_sector = None
         self.midiout = midi.controller()
         self.font = font
         self.font_large = font_large
@@ -38,7 +37,7 @@ class plotter:
             screen.blit(text_note, text_note_plot)
             pygame.draw.line(screen, settings.green, radar, (x, y), 2)
 
-    def draw_aircraft(self):
+    def draw_live_aircraft(self):
         live_aircraft = []
         try:
             # draw aircraft
@@ -66,7 +65,6 @@ class plotter:
         for flight in self.live_aircraft:
             plotter.plot_aircraft(self, flight)
 
-        # store aircraft
 
     def set_live_aircraft(self, live_aircraft):
         prev_aircraft = set(self.live_aircraft)
@@ -104,12 +102,13 @@ class plotter:
     # draw aircraft
     def plot_aircraft(self, aircraft):
         sector = self.check_boundaries(aircraft, self.scale)
-        colour = sector.colour
+        colour = sector.color
 
-        if self.active_aircraft:
-            if self.active_aircraft.registration == aircraft.registration:
-                self.active_aircraft = aircraft
-                colour = settings.green
+        if self.active_sector:
+            if self.active_sector.aircraft:
+                if self.active_sector.aircraft.registration == aircraft.registration:
+                    self.active_sector.aircraft = aircraft
+                    colour = settings.green
 
         plotted_xy = (aircraft.plotted_x(), aircraft.plotted_y())
         pygame.draw.circle(self.screen, (settings.white), (plotted_xy), 10)
@@ -147,7 +146,7 @@ class plotter:
     def check_boundaries(self, aircraft, scale):
 
         sector = objects.aw_sector()
-        sector.colour = settings.red
+        sector.color = settings.red
 
         # check for note boundary
         for count, angle in enumerate(scale.major_angles()):
@@ -156,10 +155,13 @@ class plotter:
                 if aircraft.inital_bearing_diff != 0:
                     if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
                         if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
+
+                            note = self.set_note(count, scale, aircraft, sector)
+                            sector.aircraft = aircraft
                             sector.color = settings.green
-                            note = self.set_note(count, scale, aircraft)
+                            sector.note = note
                             self.update_panel(aircraft=aircraft, aw_note=note)
-                            self.active_aircraft = aircraft
+                            self.active_sector = sector
                             break
                 else:
                     if aircraft.inital_bearing_diff == 0:
@@ -173,14 +175,14 @@ class plotter:
                 pass
         return sector
 
-    def set_note(self, count, scale, aircraft):
+    def set_note(self, count, scale, aircraft, sector):
         note = objects.aw_note()
         if aircraft.bearing_diff > 0:
             note.note_name = scale.key[count] + '2'
         else:
             note.note_name = scale.key[count - 1] + '2'
         note.note_number = note.note2number(note.note_name)
-        self.active_note = note
+        sector.note = note
         self.midiout.send_note(note)
         return note
 

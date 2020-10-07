@@ -59,9 +59,12 @@ class scale:
 
 class aw_sector:
     def __init__(self):
-        self.colour = None
+        self.color = None
         self.note = None
         self.aircraft = None
+
+    def __repr__(self):
+        return self.note.note_name
 
 class aw_note:
     def __init__(self):
@@ -74,5 +77,10 @@ class aw_note:
 
     def get_hz(self):
         return round(pretty_midi.note_number_to_hz(self.note_number),2)
+
+    def __repr__(self):
+        return self.note_name
+
+
 
 
