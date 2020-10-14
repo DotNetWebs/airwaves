@@ -2,6 +2,7 @@ import math
 from geopy.distance import great_circle
 import helpers
 import pretty_midi
+import settings
 
 class map:
     def __init__(self, lat, long, offset, height, width):
@@ -76,7 +77,7 @@ class aw_note:
         return note_number
 
     def get_hz(self):
-        return round(pretty_midi.note_number_to_hz(self.note_number),2)
+        return round(pretty_midi.note_number_to_hz(self.note_number),settings.initial_octave)
 
     def __repr__(self):
         return self.note_name

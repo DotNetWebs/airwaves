@@ -14,5 +14,6 @@ main_font = ("Arial", 14)
 large_font = ("Arial", 36)
 bg_image = "background.png"
 initial_key = "F"
+initial_octave = 2
 panel_width = 400
 debug_mode = False

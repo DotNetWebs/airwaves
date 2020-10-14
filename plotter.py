@@ -178,9 +178,9 @@ class plotter:
     def set_note(self, count, scale, aircraft, sector):
         note = objects.aw_note()
         if aircraft.bearing_diff > 0:
-            note.note_name = scale.key[count] + '2'
+            note.note_name = scale.key[count] + str(settings.initial_octave)
         else:
-            note.note_name = scale.key[count - 1] + '2'
+            note.note_name = scale.key[count - 1] + str(settings.initial_octave)
         note.note_number = note.note2number(note.note_name)
         sector.note = note
         self.midiout.send_note(note)
