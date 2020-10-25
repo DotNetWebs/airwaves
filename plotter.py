@@ -37,7 +37,7 @@ class plotter:
             screen.blit(text_note, text_note_plot)
             pygame.draw.line(screen, settings.green, radar, (x, y), 2)
 
-    def draw_live_aircraft(self):
+    def set_live_aircraft(self):
         live_aircraft = []
         try:
             # draw aircraft
@@ -60,13 +60,6 @@ class plotter:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             pass
 
-        plotter.set_live_aircraft(self, live_aircraft)
-
-        for flight in self.live_aircraft:
-            plotter.plot_aircraft(self, flight)
-
-
-    def set_live_aircraft(self, live_aircraft):
         prev_aircraft = set(self.live_aircraft)
         current_aircraft = set(live_aircraft)
         retained_aircraft = prev_aircraft & current_aircraft
@@ -74,40 +67,41 @@ class plotter:
         old_aircraft = prev_aircraft - current_aircraft
 
         # remove old aircraft
-        for aircraft in old_aircraft:
+        for ac in old_aircraft:
 
             for i, o in enumerate(self.live_aircraft):
-                if o.registration == aircraft.registration:
+                if o.registration == ac.registration:
                     del self.live_aircraft[i]
                     break
 
         # add new aircraft
-        for aircraft in new_aircraft:
-            self.live_aircraft.append(aircraft)
+        for ac in new_aircraft:
+            self.live_aircraft.append(ac)
 
         # update retained aircraft
-        for aircraft in retained_aircraft:
+        for ac in retained_aircraft:
 
             for i, o in enumerate(self.live_aircraft):
-                if o.registration == aircraft.registration:
-                    o.baro_alt = aircraft.baro_alt
-                    o.heading = aircraft.heading
-                    o.IAS = aircraft.IAS
-                    o.position = aircraft.position
+                if o.registration == ac.registration:
+                    o.baro_alt = ac.baro_alt
+                    o.heading = ac.heading
+                    o.IAS = ac.IAS
+                    o.position = ac.position
 
         # update aircraft life
-        for aircraft in self.live_aircraft:
-            aircraft.update_life()
+        for ac in self.live_aircraft:
+            ac.update_life()
 
     # draw aircraft
     def plot_aircraft(self, aircraft):
-        sector = self.check_boundaries(aircraft, self.scale)
-        colour = sector.color
+        # sector = self.check_boundaries(aircraft, self.scale)
+        colour = settings.red
 
         if self.active_sector:
             if self.active_sector.aircraft:
                 if self.active_sector.aircraft.registration == aircraft.registration:
                     self.active_sector.aircraft = aircraft
+                    self.update_panel(aircraft=aircraft)
                     colour = settings.green
 
         plotted_xy = (aircraft.plotted_x(), aircraft.plotted_y())
@@ -143,20 +137,20 @@ class plotter:
             self.screen.blit(text_init_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 11))
             self.screen.blit(text_bearing_diff, (plotted_xy[0] + 10, plotted_xy[1] + settings.text_spacer * 12))
 
-    def check_boundaries(self, aircraft, scale):
+    def check_boundaries(self, aircraft):
 
         sector = objects.aw_sector()
         sector.color = settings.red
 
         # check for note boundary
-        for count, angle in enumerate(scale.major_angles()):
+        for count, angle in enumerate(self.scale.major_angles()):
 
             try:
                 if aircraft.inital_bearing_diff != 0:
                     if int(aircraft.corrected_bearing()) - 1 <= int(angle) <= int(aircraft.corrected_bearing()) + 1:
                         if aircraft.plotted_x() > 0 < 1000 and aircraft.plotted_y() > 0 < 1000:
 
-                            note = self.set_note(count, scale, aircraft, sector)
+                            note = self.set_note(count, self.scale, aircraft, sector)
                             sector.aircraft = aircraft
                             sector.color = settings.green
                             sector.note = note

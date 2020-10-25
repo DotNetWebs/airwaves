@@ -51,13 +51,17 @@ while running:
     plotter.draw_scale(radar_surface)
     screen.blit(radar_surface, (0, 0))
 
-    # draw all live aircraft
-    plotter.draw_live_aircraft()
+    # set live aircraft
+    plotter.set_live_aircraft()
 
-    # update active aircraft
-    if plotter.active_sector:
-        if plotter.active_sector.aircraft:
-            plotter.update_panel(aircraft=plotter.active_sector.aircraft)
+    # plot live aircraft
+    for flight in plotter.live_aircraft:
+        plotter.plot_aircraft(flight)
+        sector = plotter.check_boundaries(flight)
+
+        if sector.aircraft:
+            #TODO
+            plok="plok"
 
     # refresh radar display
     pygame.display.update(radar_rect)
