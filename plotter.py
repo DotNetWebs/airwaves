@@ -21,7 +21,7 @@ class plotter:
         self.font = font
         self.font_large = font_large
 
-    def draw_scale(self, screen):
+    def draw_scale(self, screen, sector = None):
         for count, angle in enumerate(self.scale.major_angles()):
             radar = (self.map.home_x, self.map.home_y)
             radar_len = 750
@@ -35,7 +35,15 @@ class plotter:
             text_note = self.font_large.render(note + " " + str(int(angle)), True, settings.green, 22)
             text_note_plot = (note_x, note_y)
             screen.blit(text_note, text_note_plot)
+
+            if sector:
+                # TODO
+                active_note = str(sector.note)[:-1]
+                plok = note
+
             pygame.draw.line(screen, settings.green, radar, (x, y), 2)
+
+
 
     def set_live_aircraft(self):
         live_aircraft = []

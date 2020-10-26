@@ -60,8 +60,7 @@ while running:
         sector = plotter.check_boundaries(flight)
 
         if sector.aircraft:
-            #TODO
-            plok="plok"
+            plotter.draw_scale(radar_surface, sector)
 
     # refresh radar display
     pygame.display.update(radar_rect)
